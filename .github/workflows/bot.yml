@@ -36,6 +36,7 @@ jobs:
           GA_INSTANCE: ${{ secrets.GA_INSTANCE }}
           GA_TOKEN: ${{ secrets.GA_TOKEN }}
           GA_GROUP: ${{ secrets.GA_GROUP }}
+          GA_GROUP_LEADERBOARD: ${{ secrets.GA_GROUP_LEADERBOARD }}
           FD_TOKEN: ${{ secrets.FD_TOKEN }}
           POLLAYA_LINK: ${{ secrets.POLLAYA_LINK }}
           POLLAYA_TOKEN: ${{ secrets.POLLAYA_TOKEN }}

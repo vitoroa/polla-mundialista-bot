@@ -30,6 +30,8 @@ load_dotenv()
 GA_INSTANCE = os.environ["GA_INSTANCE"]
 GA_TOKEN = os.environ["GA_TOKEN"]
 GA_GROUP = os.environ["GA_GROUP"]
+# Optional: separate chat for the leaderboard. Falls back to GA_GROUP if unset.
+GA_GROUP_LEADERBOARD = os.environ.get("GA_GROUP_LEADERBOARD", GA_GROUP)
 FD_TOKEN = os.environ["FD_TOKEN"]
 
 # --- Optional config ---
@@ -161,12 +163,13 @@ def save_state(state):
 
 
 # ---------- WhatsApp ----------
-def send_whatsapp(text):
+def send_whatsapp(text, chat_id=None):
+    target = chat_id or GA_GROUP
     url = f"https://api.green-api.com/waInstance{GA_INSTANCE}/sendMessage/{GA_TOKEN}"
-    payload = {"chatId": GA_GROUP, "message": text}
+    payload = {"chatId": target, "message": text}
     r = requests.post(url, json=payload, timeout=15)
     r.raise_for_status()
-    print(f"  Sent: {text[:80].replace(chr(10), ' | ')}...")
+    print(f"  Sent to {target[:20]}...: {text[:60].replace(chr(10), ' | ')}...")
     time.sleep(2)
 
 
@@ -419,7 +422,7 @@ def maybe_send_leaderboard(state, matches, now_utc, now_ref):
 
     msg = leaderboard_msg(results)
     if msg:
-        send_whatsapp(msg)
+        send_whatsapp(msg, chat_id=GA_GROUP_LEADERBOARD)
     state["last_leaderboard_date"] = today_str
     save_state(state)
 
@@ -443,6 +446,7 @@ def tick():
     maybe_send_reminders(state, matches, now_utc)
     maybe_send_kickoffs_and_results(state, matches)
     maybe_send_leaderboard(state, matches, now_utc, now_ref)
+
 
 if __name__ == "__main__":
     tick()
