@@ -44,6 +44,7 @@ REFERENCE_TZ = timezone(timedelta(hours=-4))
 DISPLAY_ZONES = [
     ("LA", timezone(timedelta(hours=-7))),
     ("NY", timezone(timedelta(hours=-4))),
+    ("BOG", timezone(timedelta(hours=-5))),
     ("LDN", timezone(timedelta(hours=1))),
     ("MAD", timezone(timedelta(hours=2))),
 ]
