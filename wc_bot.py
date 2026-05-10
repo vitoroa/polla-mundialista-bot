@@ -314,7 +314,19 @@ def maybe_send_kickoffs_and_results(state, matches):
 def tick():
     state = load_state()
     matches = fetch_matches()
-    now_utc = datetime.now(timezone.utc)
+
+    # Allow forcing a fake "today" for testing.
+    # Set DEBUG_DATE=2026-06-11 (or any tournament date) in your .env
+    # to simulate that day's preview/reminders/kickoffs/results.
+    debug_date = os.environ.get("DEBUG_DATE", "").strip()
+    if debug_date:
+        target = datetime.fromisoformat(debug_date).replace(tzinfo=REFERENCE_TZ)
+        # Pick a "now" in the middle of that day so all matches are visible
+        now_utc = target.replace(hour=12, minute=0).astimezone(timezone.utc)
+        print(f"⚠️  DEBUG_DATE active: pretending it's {debug_date} 12:00 NY")
+    else:
+        now_utc = datetime.now(timezone.utc)
+
     now_ref = now_utc.astimezone(REFERENCE_TZ)
     print(f"Fetched {len(matches)} matches. Reference time (NY): {now_ref}")
 
