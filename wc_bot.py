@@ -446,8 +446,3 @@ def tick():
 
 if __name__ == "__main__":
     tick()
-
-    # TEMP: test leaderboard format
-	    #results = fetch_leaderboard()
-	    #if results:
-	    #    send_whatsapp(leaderboard_msg(results))
