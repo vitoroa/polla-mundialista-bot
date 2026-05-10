@@ -6,8 +6,9 @@ Features:
 - Pre-match reminder ~1 hour before kickoff
 - Live kickoff announcement
 - Full-time results
+- Daily leaderboard from Pollaya, posted after the day's last match ends
 - Country flag emojis
-- Times shown in LA / NY / LDN / MAD (summer offsets - tournament is in summer)
+- Times shown in LA / NY / BOG / LDN / MAD (summer offsets)
 - Every message in Spanish AND English
 
 Designed to run on GitHub Actions every 10 minutes.
@@ -25,22 +26,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- Config ---
+# --- Required config ---
 GA_INSTANCE = os.environ["GA_INSTANCE"]
 GA_TOKEN = os.environ["GA_TOKEN"]
 GA_GROUP = os.environ["GA_GROUP"]
 FD_TOKEN = os.environ["FD_TOKEN"]
+
+# --- Optional config ---
 POLLAYA_LINK = os.environ.get("POLLAYA_LINK", "")
+POLLAYA_TOKEN = os.environ.get("POLLAYA_TOKEN", "")
+POLLAYA_GROUP_ID = os.environ.get("POLLAYA_GROUP_ID", "")
 
-# --- Timezones ---
-# Tournament runs June 11 - July 19, 2026 — all DST in summer.
-# Reference timezone for "is it preview time yet?" decisions.
-# NY (EDT = UTC-4) — chosen because the bot owner is in NY.
-REFERENCE_TZ = timezone(timedelta(hours=-4))
+# --- Timezones (tournament is summer 2026, hardcoded DST) ---
+REFERENCE_TZ = timezone(timedelta(hours=-4))  # NY in summer (EDT)
 
-# Display zones for kickoff times in messages (summer offsets):
-# LA = UTC-7 (PDT), NY = UTC-4 (EDT), LDN = UTC+1 (BST), MAD = UTC+2 (CEST)
-# BOG = UTC-5 year-round (≈ NY in winter, NY-1 in summer)
 DISPLAY_ZONES = [
     ("LA", timezone(timedelta(hours=-7))),
     ("NY", timezone(timedelta(hours=-4))),
@@ -49,18 +48,33 @@ DISPLAY_ZONES = [
     ("MAD", timezone(timedelta(hours=2))),
 ]
 
-# Reminder window: send a "match in ~1 hour" alert if the match is between
-# REMIND_MIN and REMIND_MAX minutes away. Wider than cron interval (10 min).
+# Reminder window
 REMIND_MIN = 50
 REMIND_MAX = 70
 
-# Send the daily preview at this hour in REFERENCE_TZ (24h format).
+# Daily preview hour (in REFERENCE_TZ)
 PREVIEW_HOUR = 9
+
+# How many minutes after a match ends until we send the leaderboard.
+# Pollaya needs time to score, plus we want to wait in case other late games
+# end shortly after.
+LEADERBOARD_DELAY_MIN = 30
 
 STATE_FILE = Path("wc_state.json")
 FD_URL = "https://api.football-data.org/v4/competitions/WC/matches"
+POLLAYA_URL = (
+    f"https://api.pollaya.com/api/v1/groups/{POLLAYA_GROUP_ID}"
+    f"/leaderboard?page=0&pageSize=100"
+)
+POLLAYA_HEADERS = {
+    "Authorization": f"Bearer {POLLAYA_TOKEN}",
+    "Accept": "application/json",
+    "Origin": "https://game.pollaya.com",
+    "Referer": "https://game.pollaya.com/",
+    "X-Site-Domain": "https://game.pollaya.com",
+}
 
-# Country name -> flag emoji.
+# --- Country data ---
 FLAGS = {
     "Argentina": "🇦🇷", "Australia": "🇦🇺", "Austria": "🇦🇹",
     "Belgium": "🇧🇪", "Brazil": "🇧🇷", "Canada": "🇨🇦",
@@ -88,7 +102,6 @@ FLAGS = {
     "New Caledonia": "🇳🇨",
 }
 
-# Spanish translations of team names (only for those that differ).
 TEAM_ES = {
     "Brazil": "Brasil", "Belgium": "Bélgica", "Czech Republic": "Chequia",
     "Czechia": "Chequia", "Denmark": "Dinamarca", "England": "Inglaterra",
@@ -107,7 +120,6 @@ TEAM_ES = {
     "Curaçao": "Curazao", "Haiti": "Haití", "New Caledonia": "Nueva Caledonia",
 }
 
-# Stage translations: API value -> (English, Spanish).
 STAGE = {
     "GROUP_STAGE": ("Group Stage", "Fase de Grupos"),
     "LAST_32": ("Round of 32", "Dieciseisavos"),
@@ -140,6 +152,7 @@ def load_state():
         "announced_results": [],
         "announced_reminders": [],
         "last_preview_date": None,
+        "last_leaderboard_date": None,
     }
 
 
@@ -147,7 +160,7 @@ def save_state(state):
     STATE_FILE.write_text(json.dumps(state, indent=2))
 
 
-# ---------- WhatsApp send ----------
+# ---------- WhatsApp ----------
 def send_whatsapp(text):
     url = f"https://api.green-api.com/waInstance{GA_INSTANCE}/sendMessage/{GA_TOKEN}"
     payload = {"chatId": GA_GROUP, "message": text}
@@ -162,7 +175,7 @@ def fetch_matches():
     headers = {"X-Auth-Token": FD_TOKEN}
     r = requests.get(FD_URL, headers=headers, timeout=15)
     if r.status_code != 200:
-        print(f"API error {r.status_code}: {r.text}")
+        print(f"FD API error {r.status_code}: {r.text}")
         r.raise_for_status()
     return r.json()["matches"]
 
@@ -172,16 +185,33 @@ def parse_kickoff(m):
 
 
 def kickoff_times_str(dt):
-    """Format kickoff in all display zones, e.g. '10:00 LA · 13:00 NY · 18:00 LDN · 19:00 MAD'."""
-    parts = []
-    for label, tz in DISPLAY_ZONES:
-        parts.append(f"{dt.astimezone(tz).strftime('%H:%M')} {label}")
-    return " · ".join(parts)
+    return " · ".join(
+        f"{dt.astimezone(tz).strftime('%H:%M')} {label}"
+        for label, tz in DISPLAY_ZONES
+    )
 
 
-# ---------- Message builders (each returns a single bilingual message) ----------
+# ---------- Pollaya leaderboard ----------
+def fetch_leaderboard():
+    if not (POLLAYA_TOKEN and POLLAYA_GROUP_ID):
+        return None
+    try:
+        r = requests.get(POLLAYA_URL, headers=POLLAYA_HEADERS, timeout=15)
+        if r.status_code != 200:
+            print(f"Pollaya API error {r.status_code}: {r.text[:200]}")
+            return None
+        return r.json().get("results", [])
+    except Exception as e:
+        print(f"Pollaya fetch failed: {e}")
+        return None
+
+
+def medal(idx):
+    return {0: "🥇", 1: "🥈", 2: "🥉"}.get(idx, f"{idx + 1}.")
+
+
+# ---------- Message builders ----------
 def matchup_only(m):
-    """e.g. '🇲🇽 Mexico / México vs South Africa / Sudáfrica 🇿🇦'"""
     h, a = m["homeTeam"]["name"], m["awayTeam"]["name"]
     h_es, a_es = team_es(h), team_es(a)
     h_disp = h if h == h_es else f"{h} / {h_es}"
@@ -199,8 +229,7 @@ def preview_msg(today_matches):
         lines.append(f"   🕒 {kickoff_times_str(ko)}")
         lines.append("")
     if POLLAYA_LINK:
-        lines.append(f"⚡ Cargá tus pronósticos / Lock your predictions:")
-        lines.append(POLLAYA_LINK)
+        lines += [f"⚡ Cargá tus pronósticos / Lock your predictions:", POLLAYA_LINK]
     return "\n".join(lines).rstrip()
 
 
@@ -212,23 +241,18 @@ def reminder_msg(m):
         f"🕒 {kickoff_times_str(parse_kickoff(m))}",
     ]
     if POLLAYA_LINK:
-        parts += [
-            "",
-            "Última chance para pronosticar / Last chance to predict:",
-            POLLAYA_LINK,
-        ]
+        parts += ["", "Última chance para pronosticar / Last chance to predict:", POLLAYA_LINK]
     return "\n".join(parts)
 
 
 def kickoff_msg(m):
     stage_en, stage_es = stage_pair(m.get("stage"))
-    parts = [
+    return "\n".join([
         "⚽ *ARRANCÓ / KICKOFF*",
         "",
         matchup_only(m),
         f"📍 {stage_es} / {stage_en}",
-    ]
-    return "\n".join(parts)
+    ])
 
 
 def result_msg(m):
@@ -255,12 +279,62 @@ def result_msg(m):
         "🔔 *FINAL / FULL TIME*",
         "",
         f"{flag(h)} {h_disp} {hs} - {as_} {a_disp} {flag(a)}",
-        f"{verdict_es}",
-        f"{verdict_en}",
+        verdict_es,
+        verdict_en,
     ]
     if POLLAYA_LINK:
-        parts += ["", f"📊 Tabla / Leaderboard:", POLLAYA_LINK]
+        parts += ["", "📊 Tabla / Leaderboard:", POLLAYA_LINK]
     return "\n".join(parts)
+
+
+def leaderboard_msg(results):
+    """Format the standings. results is the list from Pollaya's API."""
+    if not results:
+        return None
+
+    # Pollaya returns sorted by position. If everyone is 0pts/position 1,
+    # show a tied message instead.
+    all_zero = all(r.get("points", 0) == 0 for r in results)
+    if all_zero:
+        body = [
+            "📊 *Tabla del día / Today's standings*",
+            "",
+            "Todos en cero — ¡a remontar!",
+            "All tied at zero — game on!",
+        ]
+        if POLLAYA_LINK:
+            body += ["", POLLAYA_LINK]
+        return "\n".join(body)
+
+    lines = ["📊 *Tabla del día / Today's standings*", ""]
+
+    # Find longest name for alignment (cap at 18 chars)
+    max_name = max(min(len(r["user"].get("name", "?")), 18) for r in results)
+
+    for i, r in enumerate(results):
+        name = r["user"].get("name", "?")
+        if len(name) > 18:
+            name = name[:17] + "…"
+        pts = r.get("points", 0)
+        pos = r.get("position", i + 1)
+
+        # Use medal for top 3 by position (handles ties in 1st)
+        if pos == 1:
+            mark = "🥇"
+        elif pos == 2:
+            mark = "🥈"
+        elif pos == 3:
+            mark = "🥉"
+        else:
+            mark = f"{pos}."
+
+        # Pad name to align points
+        padded = name.ljust(max_name)
+        lines.append(f"{mark} {padded}  {pts} pts")
+
+    if POLLAYA_LINK:
+        lines += ["", f"🔗 {POLLAYA_LINK}"]
+    return "\n".join(lines)
 
 
 # ---------- Logic ----------
@@ -311,19 +385,54 @@ def maybe_send_kickoffs_and_results(state, matches):
             save_state(state)
 
 
+def maybe_send_leaderboard(state, matches, now_utc, now_ref):
+    """Send the leaderboard once per match-day, after the day's last match
+    has been finished for at least LEADERBOARD_DELAY_MIN minutes."""
+    today_str = now_ref.date().isoformat()
+    if state.get("last_leaderboard_date") == today_str:
+        return  # already sent today
+
+    # Find today's matches (in NY local terms)
+    today_matches = [
+        m for m in matches
+        if parse_kickoff(m).astimezone(REFERENCE_TZ).date() == now_ref.date()
+    ]
+    if not today_matches:
+        return  # no matches today, skip
+
+    # All of today's matches must be finished
+    if not all(m["status"] == "FINISHED" for m in today_matches):
+        return
+
+    # And the latest kickoff must be at least ~3 hours behind us
+    # (matches last ~2h, plus LEADERBOARD_DELAY_MIN buffer for Pollaya scoring)
+    latest_kickoff = max(parse_kickoff(m) for m in today_matches)
+    delay = timedelta(hours=2, minutes=LEADERBOARD_DELAY_MIN)
+    if now_utc < latest_kickoff + delay:
+        return
+
+    # Pull leaderboard and send
+    results = fetch_leaderboard()
+    if results is None:
+        print("Skipping leaderboard: fetch failed")
+        return
+
+    msg = leaderboard_msg(results)
+    if msg:
+        send_whatsapp(msg)
+    state["last_leaderboard_date"] = today_str
+    save_state(state)
+
+
 def tick():
     state = load_state()
     matches = fetch_matches()
 
-    # Allow forcing a fake "today" for testing.
-    # Set DEBUG_DATE=2026-06-11 (or any tournament date) in your .env
-    # to simulate that day's preview/reminders/kickoffs/results.
     debug_date = os.environ.get("DEBUG_DATE", "").strip()
     if debug_date:
         target = datetime.fromisoformat(debug_date).replace(tzinfo=REFERENCE_TZ)
-        # Pick a "now" in the middle of that day so all matches are visible
-        now_utc = target.replace(hour=12, minute=0).astimezone(timezone.utc)
-        print(f"⚠️  DEBUG_DATE active: pretending it's {debug_date} 12:00 NY")
+        now_utc = target.replace(hour=23, minute=30).astimezone(timezone.utc)
+        print(f"⚠️  DEBUG_DATE active: pretending it's {debug_date} 23:30 NY")
     else:
         now_utc = datetime.now(timezone.utc)
 
@@ -333,7 +442,12 @@ def tick():
     maybe_send_preview(state, matches, now_ref)
     maybe_send_reminders(state, matches, now_utc)
     maybe_send_kickoffs_and_results(state, matches)
-
+    maybe_send_leaderboard(state, matches, now_utc, now_ref)
 
 if __name__ == "__main__":
     tick()
+
+    # TEMP: test leaderboard format
+	    #results = fetch_leaderboard()
+	    #if results:
+	    #    send_whatsapp(leaderboard_msg(results))
