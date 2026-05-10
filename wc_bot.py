@@ -118,8 +118,8 @@ if __name__ == "__main__":
 
 
 #test line
-send_whatsapp("🤖 Bot online and ready for the World Cup")
+#send_whatsapp("🤖 Bot online and ready for the World Cup")
 
-if __name__ == "__main__":
-    tick()
-    send_whatsapp("🤖 Cloud bot is online — see you on June 11!")  # ← add this line
+#if __name__ == "__main__":
+#   tick()
+#  send_whatsapp("🤖 Cloud bot is online — see you on June 11!")  # ← add this line
