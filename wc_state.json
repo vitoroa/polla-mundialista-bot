@@ -1,1 +1,12 @@
-{"announced_kickoffs":[],"announced_results":[],"announced_reminders":[],"last_preview_date":null,"last_leaderboard_date":null}
+{
+  "announced_kickoffs": [],
+  "announced_results": [
+    "537327",
+    "537328"
+  ],
+  "announced_reminders": [],
+  "last_preview_date": "2026-06-12",
+  "sent_leaderboard_dates": [
+    "2026-06-11"
+  ]
+}
