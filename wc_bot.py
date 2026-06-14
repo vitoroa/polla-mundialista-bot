@@ -89,7 +89,7 @@ FLAGS = {
     "United Arab Emirates": "🇦🇪", "Oman": "🇴🇲",
     "Costa Rica": "🇨🇷", "Honduras": "🇭🇳", "Jamaica": "🇯🇲",
     "Curaçao": "🇨🇼", "Haiti": "🇭🇹", "Suriname": "🇸🇷",
-    "New Caledonia": "🇳🇨",
+    "New Caledonia": "🇳🇨", "Sweden": "🇸🇪"
 }
 
 TEAM_ES = {
@@ -107,7 +107,7 @@ TEAM_ES = {
     "Wales": "Gales", "Algeria": "Argelia", "Nigeria": "Nigeria",
     "Cameroon": "Camerún", "DR Congo": "RD Congo", "Iraq": "Irak",
     "United Arab Emirates": "Emiratos Árabes Unidos",
-    "Curaçao": "Curazao", "Haiti": "Haití", "New Caledonia": "Nueva Caledonia",
+    "Curaçao": "Curazao", "Haiti": "Haití", "New Caledonia": "Nueva Caledonia", "Sweden": "Suecia", 
 }
 
 STAGE = {
@@ -240,10 +240,12 @@ def reminder_msg(m):
 
 def kickoff_msg(m):
     stage_en, stage_es = stage_pair(m.get("stage"))
+    ko = parse_kickoff(m)
     return "\n".join([
-        "⚽ *ARRANCÓ / KICKOFF*",
+        "⚽ *EMPIEZA PRONTO / STARTING SOON*",
         "",
         matchup_only(m),
+        f"🕒 {kickoff_times_str(ko)}",
         f"📍 {stage_es} / {stage_en}",
     ])
 
@@ -367,15 +369,14 @@ def maybe_send_kickoffs_and_results(state, matches, now_utc):
         mid = str(m["id"])
         status = m["status"]
 
-        # Kickoff: announce when the scheduled time has been reached,
-        # regardless of whether football-data.org has flipped to IN_PLAY yet.
+        # Kickoff announcement: fire when kickoff is within 30 min in the
+        # future, or up to 60 min after (safety net if cron ran late).
         # Safety guards:
-        # - Status not POSTPONED/CANCELLED (don't announce non-events)
-        # - Within 3 hours of scheduled time (avoid re-announcing if state gets reset)
+        # - Status not POSTPONED/CANCELLED/SUSPENDED (don't announce non-events)
         if mid not in state["announced_kickoffs"]:
             ko = parse_kickoff(m)
-            minutes_since = (now_utc - ko).total_seconds() / 60
-            if (0 <= minutes_since <= 180
+            minutes_until = (ko - now_utc).total_seconds() / 60
+            if (-60 <= minutes_until <= 30
                     and status not in ("POSTPONED", "CANCELLED", "SUSPENDED")):
                 send_whatsapp(kickoff_msg(m))
                 state["announced_kickoffs"].append(mid)
