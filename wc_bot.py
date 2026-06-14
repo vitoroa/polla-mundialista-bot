@@ -362,14 +362,27 @@ def maybe_send_reminders(state, matches, now_utc):
             save_state(state)
 
 
-def maybe_send_kickoffs_and_results(state, matches):
+def maybe_send_kickoffs_and_results(state, matches, now_utc):
     for m in matches:
         mid = str(m["id"])
         status = m["status"]
-        if status == "IN_PLAY" and mid not in state["announced_kickoffs"]:
-            send_whatsapp(kickoff_msg(m))
-            state["announced_kickoffs"].append(mid)
-            save_state(state)
+
+        # Kickoff: announce when the scheduled time has been reached,
+        # regardless of whether football-data.org has flipped to IN_PLAY yet.
+        # Safety guards:
+        # - Status not POSTPONED/CANCELLED (don't announce non-events)
+        # - Within 3 hours of scheduled time (avoid re-announcing if state gets reset)
+        if mid not in state["announced_kickoffs"]:
+            ko = parse_kickoff(m)
+            minutes_since = (now_utc - ko).total_seconds() / 60
+            if (0 <= minutes_since <= 180
+                    and status not in ("POSTPONED", "CANCELLED", "SUSPENDED")):
+                send_whatsapp(kickoff_msg(m))
+                state["announced_kickoffs"].append(mid)
+                save_state(state)
+
+        # Result: still triggered by API status (this is correct — we need
+        # the final score, which only exists after the match ends).
         if status == "FINISHED" and mid not in state["announced_results"]:
             send_whatsapp(result_msg(m))
             state["announced_results"].append(mid)
@@ -440,7 +453,7 @@ def tick():
 
     maybe_send_preview(state, matches, now_ref)
     maybe_send_reminders(state, matches, now_utc)
-    maybe_send_kickoffs_and_results(state, matches)
+    maybe_send_kickoffs_and_results(state, matches, now_utc)
     maybe_send_leaderboard(state, matches, now_utc)
 
 
