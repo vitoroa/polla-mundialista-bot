@@ -34,6 +34,7 @@ FD_TOKEN = os.environ["FD_TOKEN"]
 POLLAYA_LINK = os.environ.get("POLLAYA_LINK", "")
 POLLAYA_TOKEN = os.environ.get("POLLAYA_TOKEN", "")
 POLLAYA_GROUP_ID = os.environ.get("POLLAYA_GROUP_ID", "")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 # --- Timezones (tournament is summer 2026, hardcoded DST) ---
 REFERENCE_TZ = timezone(timedelta(hours=-4))  # NY in summer (EDT)
@@ -89,7 +90,7 @@ FLAGS = {
     "United Arab Emirates": "🇦🇪", "Oman": "🇴🇲",
     "Costa Rica": "🇨🇷", "Honduras": "🇭🇳", "Jamaica": "🇯🇲",
     "Curaçao": "🇨🇼", "Haiti": "🇭🇹", "Suriname": "🇸🇷",
-    "New Caledonia": "🇳🇨", "Sweden": "🇸🇪"
+    "New Caledonia": "🇳🇨",
 }
 
 TEAM_ES = {
@@ -107,7 +108,7 @@ TEAM_ES = {
     "Wales": "Gales", "Algeria": "Argelia", "Nigeria": "Nigeria",
     "Cameroon": "Camerún", "DR Congo": "RD Congo", "Iraq": "Irak",
     "United Arab Emirates": "Emiratos Árabes Unidos",
-    "Curaçao": "Curazao", "Haiti": "Haití", "New Caledonia": "Nueva Caledonia", "Sweden": "Suecia", 
+    "Curaçao": "Curazao", "Haiti": "Haití", "New Caledonia": "Nueva Caledonia",
 }
 
 STAGE = {
@@ -142,6 +143,9 @@ def load_state():
             old = state.get("last_leaderboard_date")
             state["sent_leaderboard_dates"] = [old] if old else []
             state.pop("last_leaderboard_date", None)
+        # New field for delta tracking
+        if "previous_leaderboard" not in state:
+            state["previous_leaderboard"] = []
         return state
     return {
         "announced_kickoffs": [],
@@ -149,6 +153,7 @@ def load_state():
         "announced_reminders": [],
         "last_preview_date": None,
         "sent_leaderboard_dates": [],
+        "previous_leaderboard": [],
     }
 
 
@@ -282,20 +287,154 @@ def result_msg(m):
     return "\n".join(parts)
 
 
-def leaderboard_msg(results, day_label=None):
-    """Format the standings. day_label optionally adds context like 'Día 1 / Day 1'."""
+def first_name(full):
+    return full.split()[0] if full else "?"
+
+
+def compute_deltas(current, previous):
+    """For each current entry, return dict with name, points, position,
+    points_delta, position_delta. position_delta positive = moved up."""
+    prev_by_name = {r["user"]["name"]: r for r in previous} if previous else {}
+    out = []
+    for r in current:
+        name = r["user"].get("name", "?")
+        pts = r.get("points", 0)
+        pos = r.get("position", 0)
+        prev = prev_by_name.get(name)
+        out.append({
+            "name": name,
+            "points": pts,
+            "position": pos,
+            "points_delta": pts - prev["points"] if prev else None,
+            "position_delta": prev["position"] - pos if prev else None,
+        })
+    return out
+
+
+def find_movers(deltas):
+    """Return (mvp, faller) — each is a dict from compute_deltas, or None."""
+    with_deltas = [d for d in deltas if d["points_delta"] is not None]
+    if not with_deltas:
+        return None, None
+    mvp = max(with_deltas, key=lambda d: d["points_delta"])
+    if mvp["points_delta"] <= 0:
+        mvp = None
+    faller = min(with_deltas, key=lambda d: d["position_delta"])
+    if faller["position_delta"] >= 0:
+        faller = None
+    return mvp, faller
+
+
+def ai_commentary(deltas, mvp, faller):
+    """Call Claude API to generate witty bilingual commentary.
+    Returns dict {es, en} on success, None on any failure."""
+    if not ANTHROPIC_API_KEY:
+        return None
+
+    top_5 = sorted(deltas, key=lambda d: d["position"])[:5]
+    standings_lines = []
+    for d in top_5:
+        delta_str = ""
+        if d["points_delta"] is not None:
+            delta_str = f" ({d['points_delta']:+d} pts"
+            if d["position_delta"]:
+                delta_str += f", {d['position_delta']:+d} pos)"
+            else:
+                delta_str += ")"
+        standings_lines.append(f"{d['position']}. {d['name']} - {d['points']} pts{delta_str}")
+
+    mvp_line = "none today"
+    if mvp:
+        mvp_line = f"{first_name(mvp['name'])} (+{mvp['points_delta']} pts)"
+    faller_line = "none today"
+    if faller:
+        faller_line = f"{first_name(faller['name'])} ({faller['position_delta']:+d} positions)"
+
+    prompt = f"""You're the unhinged, trash-talking commentator of a friends-only World Cup prediction pool. Your job: stir the pot. Get people roasting each other in the WhatsApp chat. The pool is FIERCE and these friends LOVE talking smack.
+
+TOP 5 STANDINGS (after today's matches):
+{chr(10).join(standings_lines)}
+
+TODAY'S MOVES:
+🔥 MVP (most points gained): {mvp_line}
+📉 Biggest faller (lost most positions): {faller_line}
+
+Write commentary that makes the group chat EXPLODE with banter. Goal: someone WILL reply.
+
+TONE (channel these):
+- A South American sports radio host who's had three espressos
+- An older brother who never lets you forget
+- "Trash talk between friends" — sharp but never cruel
+- Confident, dramatic, slightly delusional energy
+- Surgical use of soccer clichés and metaphors
+
+WHAT WORKS:
+- Direct callouts using first names ("¿Dónde anda Juan? ¿Otra vez en el banquillo?")
+- Provocative questions ("¿Alguien va a hacerle frente a María o se quedan dormidos?")
+- Dramatic declarations ("Sofia se mandó tres goles de chilena en una noche")
+- Soccer metaphors used WRONG on purpose for comedic effect
+- Mock-serious analysis of someone's terrible picks
+- One specific dig at someone's bad night
+
+STRICT RULES:
+- FIRST NAMES ONLY (e.g., "María", not "María García")
+- 1-2 sentences PER LANGUAGE, max 25 words each
+- Latin American Spanish (Mexican/Argentine flavor welcome)
+- English: like a sports bar argument, casual cursing OK but kept light (damn, hell — no f-bombs)
+- ALWAYS name at least one actual person from the data
+- NEVER generic — references SPECIFIC point changes, position changes, or movements
+- NO mean-spirited attacks on appearance, intelligence, or anything personal
+- Goal: provoke a reply, not a fight
+
+Return ONLY valid JSON, no markdown, no preamble:
+{{"es": "...", "en": "..."}}"""
+
+    try:
+        r = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-sonnet-4-6",
+                "max_tokens": 300,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+            timeout=20,
+        )
+        if r.status_code != 200:
+            print(f"  Claude API error {r.status_code}: {r.text[:200]}")
+            return None
+        text = r.json()["content"][0]["text"].strip()
+        if text.startswith("```"):
+            text = text.split("```")[1]
+            if text.startswith("json"):
+                text = text[4:]
+            text = text.strip()
+        result = json.loads(text)
+        if "es" in result and "en" in result:
+            return result
+        return None
+    except Exception as e:
+        print(f"  Claude API failed: {e}")
+        return None
+
+
+def leaderboard_msg(results, previous=None):
     if not results:
         return None
 
+    deltas = compute_deltas(results, previous)
+    has_history = any(d["points_delta"] is not None for d in deltas)
     all_zero = all(r.get("points", 0) == 0 for r in results)
+
     header = "📊 *Tabla / Standings*"
-    if day_label:
-        header = f"📊 *Tabla {day_label} / Standings {day_label}*"
 
     if all_zero:
         body = [
-            header,
-            "",
+            header, "",
             "Todos en cero — ¡a remontar!",
             "All tied at zero — game on!",
         ]
@@ -304,15 +443,27 @@ def leaderboard_msg(results, day_label=None):
         return "\n".join(body)
 
     lines = [header, ""]
-    max_name = max(min(len(r["user"].get("name", "?")), 18) for r in results)
 
-    for i, r in enumerate(results):
-        name = r["user"].get("name", "?")
-        if len(name) > 18:
-            name = name[:17] + "…"
-        pts = r.get("points", 0)
-        pos = r.get("position", i + 1)
+    # MVP / Faller callout (only if we have history)
+    mvp, faller = (None, None)
+    if has_history:
+        mvp, faller = find_movers(deltas)
+        callouts = []
+        if mvp:
+            callouts.append(f"🔥 MVP: {first_name(mvp['name'])} (+{mvp['points_delta']} pts)")
+        if faller:
+            callouts.append(f"📉 Difícil: {first_name(faller['name'])} ({faller['position_delta']:+d} pos)")
+        if callouts:
+            lines += callouts + [""]
 
+    # Standings table
+    max_name = max(min(len(d["name"]), 16) for d in deltas)
+    for d in deltas:
+        name = d["name"]
+        if len(name) > 16:
+            name = name[:15] + "…"
+
+        pos = d["position"]
         if pos == 1:
             mark = "🥇"
         elif pos == 2:
@@ -322,8 +473,23 @@ def leaderboard_msg(results, day_label=None):
         else:
             mark = f"{pos}."
 
-        padded = name.ljust(max_name)
-        lines.append(f"{mark} {padded}  {pts} pts")
+        line = f"{mark} {name.ljust(max_name)}  {d['points']} pts"
+        if d["points_delta"] is not None and d["points_delta"] != 0:
+            line += f" ({d['points_delta']:+d})"
+        if d["position_delta"] is not None and d["position_delta"] != 0:
+            arrow = "↑" if d["position_delta"] > 0 else "↓"
+            line += f" {arrow}{abs(d['position_delta'])}"
+        lines.append(line)
+
+    # AI commentary (only if we have history)
+    if has_history:
+        commentary = ai_commentary(deltas, mvp, faller)
+        if commentary:
+            lines += [
+                "",
+                f"💬 {commentary['es']}",
+                f"💬 {commentary['en']}",
+            ]
 
     if POLLAYA_LINK:
         lines += ["", f"🔗 {POLLAYA_LINK}"]
@@ -427,10 +593,20 @@ def maybe_send_leaderboard(state, matches, now_utc):
             print(f"  Skipping leaderboard for {date_str}: fetch failed")
             return  # retry next run; don't mark as sent
 
-        msg = leaderboard_msg(results)
+        previous = state.get("previous_leaderboard", [])
+        msg = leaderboard_msg(results, previous=previous)
         if msg:
             send_whatsapp(msg, chat_id=GA_GROUP_LEADERBOARD)
 
+        # Snapshot current results for tomorrow's diff
+        state["previous_leaderboard"] = [
+            {
+                "user": {"name": r["user"].get("name", "?")},
+                "points": r.get("points", 0),
+                "position": r.get("position", 0),
+            }
+            for r in results
+        ]
         sent.add(date_str)
         state["sent_leaderboard_dates"] = sorted(sent)
         save_state(state)
