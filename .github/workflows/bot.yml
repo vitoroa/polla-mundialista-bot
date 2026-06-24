@@ -2,16 +2,12 @@ name: World Cup Bot
 
 on:
   schedule:
-    # Every 5 minutes. GitHub cron uses UTC.
-    - cron: '*/5 * * * *'
-  # Allow manual triggering from GitHub UI
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
-# Allow the workflow to commit state back to the repo
 permissions:
   contents: write
 
-# Prevent overlapping runs (so we don't double-post)
 concurrency:
   group: wc-bot
   cancel-in-progress: false
@@ -41,6 +37,7 @@ jobs:
           POLLAYA_LINK: ${{ secrets.POLLAYA_LINK }}
           POLLAYA_TOKEN: ${{ secrets.POLLAYA_TOKEN }}
           POLLAYA_GROUP_ID: ${{ secrets.POLLAYA_GROUP_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python wc_bot.py
 
       - name: Commit updated state file
