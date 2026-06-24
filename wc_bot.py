@@ -293,14 +293,16 @@ def first_name(full):
 
 def compute_deltas(current, previous):
     """For each current entry, return dict with name, points, position,
-    points_delta, position_delta. position_delta positive = moved up."""
-    prev_by_name = {r["user"]["name"]: r for r in previous} if previous else {}
+    points_delta, position_delta. position_delta positive = moved up.
+    Joined on user.id for stability against duplicate names."""
+    prev_by_id = {r["user"].get("id"): r for r in previous} if previous else {}
     out = []
     for r in current:
+        uid = r["user"].get("id")
         name = r["user"].get("name", "?")
         pts = r.get("points", 0)
         pos = r.get("position", 0)
-        prev = prev_by_name.get(name)
+        prev = prev_by_id.get(uid)
         out.append({
             "name": name,
             "points": pts,
@@ -350,7 +352,7 @@ def ai_commentary(deltas, mvp, faller):
     if faller:
         faller_line = f"{first_name(faller['name'])} ({faller['position_delta']:+d} positions)"
 
-    prompt = f"""You're the unhinged, trash-talking commentator of a friends-only World Cup prediction pool. Your job: stir the pot. Get people roasting each other in the WhatsApp chat. The pool is FIERCE and these friends LOVE talking smack.
+    prompt = f"""You're the dry, deadpan commentator of a friends-only World Cup prediction pool. Think understated British wit, but in two distinct flavors: Colombian Spanish and New York English. SHORT and CUTTING — never loud.
 
 TOP 5 STANDINGS (after today's matches):
 {chr(10).join(standings_lines)}
@@ -359,34 +361,36 @@ TODAY'S MOVES:
 🔥 MVP (most points gained): {mvp_line}
 📉 Biggest faller (lost most positions): {faller_line}
 
-Write commentary that makes the group chat EXPLODE with banter. Goal: someone WILL reply.
+TONE — dry humor, not loud:
+- Less exclamation, more sting
+- One specific observation per line, not a list of jokes
+- Like a friend who watches you mess up and just says "ah"
+- Sounds like someone who barely cares but is paying very close attention
+- Mock-casual delivery makes the dig land
 
-TONE (channel these):
-- A South American sports radio host who's had three espressos
-- An older brother who never lets you forget
-- "Trash talk between friends" — sharp but never cruel
-- Confident, dramatic, slightly delusional energy
-- Surgical use of soccer clichés and metaphors
+SPANISH — COLOMBIAN flavor:
+- "Parce", "ñero", "berraco", "tranqui", "vea pues", "mijo"
+- "Esa sí no se la perdono", "qué nota", "qué pereza"
+- Polite-on-the-surface, cutting underneath
+- Example: "Parce, Evan se mandó 139 puntos hoy. Calladito. Como si nadie tuviera que notar."
 
-WHAT WORKS:
-- Direct callouts using first names ("¿Dónde anda Juan? ¿Otra vez en el banquillo?")
-- Provocative questions ("¿Alguien va a hacerle frente a María o se quedan dormidos?")
-- Dramatic declarations ("Sofia se mandó tres goles de chilena en una noche")
-- Soccer metaphors used WRONG on purpose for comedic effect
-- Mock-serious analysis of someone's terrible picks
-- One specific dig at someone's bad night
+ENGLISH — NEW YORK flavor:
+- "Yo", "look at this guy", "buddy", "pal", "c'mon now"
+- "Are you kidding me", "real subtle"
+- Brooklyn-deadpan, jaded sports-bar energy
+- Example: "Yo. Evan dropped 139 today. Real quiet about it too. We supposed to not notice?"
 
 STRICT RULES:
-- FIRST NAMES ONLY (e.g., "María", not "María García")
-- 1-2 sentences PER LANGUAGE, max 25 words each
-- Latin American Spanish (Mexican/Argentine flavor welcome)
-- English: like a sports bar argument, casual cursing OK but kept light (damn, hell — no f-bombs)
-- ALWAYS name at least one actual person from the data
-- NEVER generic — references SPECIFIC point changes, position changes, or movements
-- NO mean-spirited attacks on appearance, intelligence, or anything personal
-- Goal: provoke a reply, not a fight
+- 1 sentence per language, MAX 15 words each
+- ALWAYS name one specific person from the data
+- ALWAYS reference one specific stat (points gained, positions moved)
+- FIRST NAMES only (e.g., "Victor", not "Victor Roa")
+- No emojis in the commentary text itself
+- No mean-spirited attacks on personality, intelligence, or appearance
 
-Return ONLY valid JSON, no markdown, no preamble:
+GOAL: provoke a reply. Make someone feel called out enough to fire back.
+
+Return ONLY valid JSON, no markdown:
 {{"es": "...", "en": "..."}}"""
 
     try:
@@ -601,7 +605,10 @@ def maybe_send_leaderboard(state, matches, now_utc):
         # Snapshot current results for tomorrow's diff
         state["previous_leaderboard"] = [
             {
-                "user": {"name": r["user"].get("name", "?")},
+                "user": {
+                    "id": r["user"].get("id"),
+                    "name": r["user"].get("name", "?"),
+                },
                 "points": r.get("points", 0),
                 "position": r.get("position", 0),
             }
