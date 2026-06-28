@@ -120,7 +120,9 @@
     "537413",
     "537414",
     "537407",
-    "537408"
+    "537408",
+    "537401",
+    "537402"
   ],
   "announced_reminders": [],
   "last_preview_date": "2026-06-27",
@@ -140,7 +142,8 @@
     "2026-06-23",
     "2026-06-24",
     "2026-06-25",
-    "2026-06-26"
+    "2026-06-26",
+    "2026-06-27"
   ],
   "previous_leaderboard": [
     {
@@ -148,7 +151,7 @@
         "id": 388603,
         "name": "Tito Texidor III"
       },
-      "points": 241,
+      "points": 266,
       "position": 1
     },
     {
@@ -156,7 +159,7 @@
         "id": 164848,
         "name": "Victor Roa"
       },
-      "points": 232,
+      "points": 264,
       "position": 2
     },
     {
@@ -164,79 +167,79 @@
         "id": 117022,
         "name": "Daniel MAtallana"
       },
-      "points": 221,
+      "points": 246,
       "position": 3
-    },
-    {
-      "user": {
-        "id": 491601,
-        "name": "Andres Orozco"
-      },
-      "points": 207,
-      "position": 4
     },
     {
       "user": {
         "id": 388545,
         "name": "Gustaf Engstr\u00f6m"
       },
-      "points": 204,
-      "position": 5
+      "points": 229,
+      "position": 4
     },
     {
       "user": {
         "id": 392276,
         "name": "Greg Mihalko"
       },
-      "points": 203,
-      "position": 6
-    },
-    {
-      "user": {
-        "id": 445563,
-        "name": "Toni Comas"
-      },
-      "points": 201,
-      "position": 7
+      "points": 226,
+      "position": 5
     },
     {
       "user": {
         "id": 388666,
         "name": "Mark Morgan"
       },
-      "points": 201,
-      "position": 8
+      "points": 226,
+      "position": 6
     },
     {
       "user": {
-        "id": 388715,
-        "name": "Simoncho Vega"
+        "id": 491601,
+        "name": "Andres Orozco"
       },
-      "points": 197,
-      "position": 9
+      "points": 222,
+      "position": 7
     },
     {
       "user": {
         "id": 474798,
         "name": "Dan Arango"
       },
-      "points": 196,
-      "position": 10
-    },
-    {
-      "user": {
-        "id": 446166,
-        "name": "Moises Chavez"
-      },
-      "points": 195,
-      "position": 11
+      "points": 220,
+      "position": 8
     },
     {
       "user": {
         "id": 78894,
         "name": "Brais Rpr"
       },
-      "points": 193,
+      "points": 217,
+      "position": 9
+    },
+    {
+      "user": {
+        "id": 446166,
+        "name": "Moises Chavez"
+      },
+      "points": 215,
+      "position": 10
+    },
+    {
+      "user": {
+        "id": 445563,
+        "name": "Toni Comas"
+      },
+      "points": 214,
+      "position": 11
+    },
+    {
+      "user": {
+        "id": 466527,
+        "name": "Gabriel Novoa"
+      },
+      "points": 210,
       "position": 12
     },
     {
@@ -244,71 +247,71 @@
         "id": 420112,
         "name": "Nathan Folbrecht"
       },
-      "points": 192,
+      "points": 210,
       "position": 13
     },
     {
       "user": {
-        "id": 167293,
-        "name": "dougalves"
+        "id": 388715,
+        "name": "Simoncho Vega"
       },
-      "points": 190,
+      "points": 209,
       "position": 14
     },
     {
       "user": {
-        "id": 439548,
-        "name": "Javier Marcos "
+        "id": 435112,
+        "name": "Berkan Gunel"
       },
-      "points": 186,
+      "points": 207,
       "position": 15
-    },
-    {
-      "user": {
-        "id": 466527,
-        "name": "Gabriel Novoa"
-      },
-      "points": 185,
-      "position": 16
-    },
-    {
-      "user": {
-        "id": 90829,
-        "name": "Alfredo Ad\u00e1n"
-      },
-      "points": 185,
-      "position": 17
-    },
-    {
-      "user": {
-        "id": 397690,
-        "name": "Javierg"
-      },
-      "points": 184,
-      "position": 18
     },
     {
       "user": {
         "id": 438343,
         "name": "Ricardo Uribe "
       },
-      "points": 184,
-      "position": 19
+      "points": 204,
+      "position": 16
+    },
+    {
+      "user": {
+        "id": 397690,
+        "name": "Javierg"
+      },
+      "points": 203,
+      "position": 17
+    },
+    {
+      "user": {
+        "id": 439548,
+        "name": "Javier Marcos "
+      },
+      "points": 203,
+      "position": 18
     },
     {
       "user": {
         "id": 388686,
         "name": "Jennifer Morgan"
       },
-      "points": 182,
+      "points": 202,
+      "position": 19
+    },
+    {
+      "user": {
+        "id": 90829,
+        "name": "Alfredo Ad\u00e1n"
+      },
+      "points": 202,
       "position": 20
     },
     {
       "user": {
-        "id": 441360,
-        "name": "javier"
+        "id": 462562,
+        "name": "Joyce Durol"
       },
-      "points": 182,
+      "points": 201,
       "position": 21
     },
     {
@@ -316,103 +319,103 @@
         "id": 470786,
         "name": "Nessi Erkmenoglu"
       },
-      "points": 182,
+      "points": 200,
       "position": 22
-    },
-    {
-      "user": {
-        "id": 462562,
-        "name": "Joyce Durol"
-      },
-      "points": 182,
-      "position": 23
-    },
-    {
-      "user": {
-        "id": 479548,
-        "name": "Alejandro Pagola"
-      },
-      "points": 181,
-      "position": 24
-    },
-    {
-      "user": {
-        "id": 161557,
-        "name": "D Sebastian Roa"
-      },
-      "points": 181,
-      "position": 25
-    },
-    {
-      "user": {
-        "id": 435112,
-        "name": "Berkan Gunel"
-      },
-      "points": 180,
-      "position": 26
-    },
-    {
-      "user": {
-        "id": 462438,
-        "name": "Bart Mol"
-      },
-      "points": 179,
-      "position": 27
-    },
-    {
-      "user": {
-        "id": 97174,
-        "name": "Ignacio Ad\u00e1n Ros\u00e9s"
-      },
-      "points": 178,
-      "position": 28
-    },
-    {
-      "user": {
-        "id": 514518,
-        "name": "Javier Adan"
-      },
-      "points": 178,
-      "position": 29
-    },
-    {
-      "user": {
-        "id": 117718,
-        "name": "Helena Bardera"
-      },
-      "points": 178,
-      "position": 30
     },
     {
       "user": {
         "id": 172071,
         "name": "Juan Camilo Roa"
       },
-      "points": 177,
-      "position": 31
+      "points": 199,
+      "position": 23
+    },
+    {
+      "user": {
+        "id": 161557,
+        "name": "D Sebastian Roa"
+      },
+      "points": 198,
+      "position": 24
+    },
+    {
+      "user": {
+        "id": 117718,
+        "name": "Helena Bardera"
+      },
+      "points": 198,
+      "position": 25
+    },
+    {
+      "user": {
+        "id": 479548,
+        "name": "Alejandro Pagola"
+      },
+      "points": 197,
+      "position": 26
     },
     {
       "user": {
         "id": 401426,
         "name": "Osmin Bernal"
       },
-      "points": 174,
-      "position": 32
+      "points": 197,
+      "position": 27
     },
     {
       "user": {
-        "id": 388826,
-        "name": "Evan Benedetto"
+        "id": 462438,
+        "name": "Bart Mol"
       },
-      "points": 173,
-      "position": 33
+      "points": 196,
+      "position": 28
+    },
+    {
+      "user": {
+        "id": 97174,
+        "name": "Ignacio Ad\u00e1n Ros\u00e9s"
+      },
+      "points": 195,
+      "position": 29
     },
     {
       "user": {
         "id": 80038,
         "name": "Pablo Barrios"
       },
-      "points": 171,
+      "points": 192,
+      "position": 30
+    },
+    {
+      "user": {
+        "id": 441360,
+        "name": "javier"
+      },
+      "points": 192,
+      "position": 31
+    },
+    {
+      "user": {
+        "id": 167293,
+        "name": "dougalves"
+      },
+      "points": 190,
+      "position": 32
+    },
+    {
+      "user": {
+        "id": 388605,
+        "name": "Jake DeMartini"
+      },
+      "points": 190,
+      "position": 33
+    },
+    {
+      "user": {
+        "id": 514518,
+        "name": "Javier Adan"
+      },
+      "points": 190,
       "position": 34
     },
     {
@@ -420,7 +423,7 @@
         "id": 78855,
         "name": "victor roa jr"
       },
-      "points": 170,
+      "points": 189,
       "position": 35
     },
     {
@@ -428,63 +431,63 @@
         "id": 388774,
         "name": "Sarah Krautheim"
       },
-      "points": 170,
+      "points": 189,
       "position": 36
     },
     {
       "user": {
-        "id": 388605,
-        "name": "Jake DeMartini"
+        "id": 388826,
+        "name": "Evan Benedetto"
       },
-      "points": 169,
+      "points": 186,
       "position": 37
-    },
-    {
-      "user": {
-        "id": 421690,
-        "name": "Marthon Pucci"
-      },
-      "points": 166,
-      "position": 38
     },
     {
       "user": {
         "id": 443249,
         "name": "Sandra Garcia"
       },
-      "points": 161,
+      "points": 184,
+      "position": 38
+    },
+    {
+      "user": {
+        "id": 421690,
+        "name": "Marthon Pucci"
+      },
+      "points": 179,
       "position": 39
-    },
-    {
-      "user": {
-        "id": 573284,
-        "name": "Arnold Bennett"
-      },
-      "points": 155,
-      "position": 40
-    },
-    {
-      "user": {
-        "id": 487293,
-        "name": "sergiogolf"
-      },
-      "points": 153,
-      "position": 41
     },
     {
       "user": {
         "id": 448957,
         "name": "Borja Eizmendi"
       },
-      "points": 153,
-      "position": 42
+      "points": 174,
+      "position": 40
+    },
+    {
+      "user": {
+        "id": 573284,
+        "name": "Arnold Bennett"
+      },
+      "points": 170,
+      "position": 41
     },
     {
       "user": {
         "id": 173474,
         "name": "Arantxa Garc\u00eda"
       },
-      "points": 151,
+      "points": 169,
+      "position": 42
+    },
+    {
+      "user": {
+        "id": 487293,
+        "name": "sergiogolf"
+      },
+      "points": 165,
       "position": 43
     },
     {
@@ -492,7 +495,7 @@
         "id": 487265,
         "name": "Chris Walker"
       },
-      "points": 106,
+      "points": 118,
       "position": 44
     },
     {
