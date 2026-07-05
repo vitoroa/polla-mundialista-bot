@@ -182,7 +182,8 @@
     "2026-06-30",
     "2026-07-01",
     "2026-07-02",
-    "2026-07-03"
+    "2026-07-03",
+    "2026-07-04"
   ],
   "previous_leaderboard": [
     {
@@ -190,7 +191,7 @@
         "id": 164848,
         "name": "Victor Roa"
       },
-      "points": 467,
+      "points": 471,
       "position": 1
     },
     {
@@ -198,7 +199,7 @@
         "id": 117022,
         "name": "Daniel MAtallana"
       },
-      "points": 450,
+      "points": 457,
       "position": 2
     },
     {
@@ -206,7 +207,7 @@
         "id": 388603,
         "name": "Tito Texidor III"
       },
-      "points": 446,
+      "points": 453,
       "position": 3
     },
     {
@@ -214,23 +215,23 @@
         "id": 392276,
         "name": "Greg Mihalko"
       },
-      "points": 432,
+      "points": 440,
       "position": 4
-    },
-    {
-      "user": {
-        "id": 388666,
-        "name": "Mark Morgan"
-      },
-      "points": 427,
-      "position": 5
     },
     {
       "user": {
         "id": 388545,
         "name": "Gustaf Engstr\u00f6m"
       },
-      "points": 425,
+      "points": 432,
+      "position": 5
+    },
+    {
+      "user": {
+        "id": 388666,
+        "name": "Mark Morgan"
+      },
+      "points": 431,
       "position": 6
     },
     {
@@ -238,15 +239,15 @@
         "id": 474798,
         "name": "Dan Arango"
       },
-      "points": 410,
+      "points": 417,
       "position": 7
     },
     {
       "user": {
-        "id": 446166,
-        "name": "Moises Chavez"
+        "id": 491601,
+        "name": "Andres Orozco"
       },
-      "points": 409,
+      "points": 416,
       "position": 8
     },
     {
@@ -254,47 +255,47 @@
         "id": 78894,
         "name": "Brais Rpr"
       },
-      "points": 409,
+      "points": 416,
       "position": 9
     },
     {
       "user": {
-        "id": 491601,
-        "name": "Andres Orozco"
+        "id": 446166,
+        "name": "Moises Chavez"
       },
-      "points": 408,
+      "points": 413,
       "position": 10
-    },
-    {
-      "user": {
-        "id": 466527,
-        "name": "Gabriel Novoa"
-      },
-      "points": 400,
-      "position": 11
     },
     {
       "user": {
         "id": 388715,
         "name": "Simoncho Vega"
       },
-      "points": 398,
-      "position": 12
+      "points": 406,
+      "position": 11
     },
     {
       "user": {
-        "id": 445563,
-        "name": "Toni Comas"
+        "id": 466527,
+        "name": "Gabriel Novoa"
       },
-      "points": 397,
-      "position": 13
+      "points": 404,
+      "position": 12
     },
     {
       "user": {
         "id": 80038,
         "name": "Pablo Barrios"
       },
-      "points": 395,
+      "points": 402,
+      "position": 13
+    },
+    {
+      "user": {
+        "id": 445563,
+        "name": "Toni Comas"
+      },
+      "points": 401,
       "position": 14
     },
     {
@@ -302,7 +303,7 @@
         "id": 397690,
         "name": "Javierg"
       },
-      "points": 394,
+      "points": 400,
       "position": 15
     },
     {
@@ -310,7 +311,7 @@
         "id": 479548,
         "name": "Alejandro Pagola"
       },
-      "points": 392,
+      "points": 399,
       "position": 16
     },
     {
@@ -318,7 +319,7 @@
         "id": 514518,
         "name": "Javier Adan"
       },
-      "points": 389,
+      "points": 397,
       "position": 17
     },
     {
@@ -326,23 +327,23 @@
         "id": 117718,
         "name": "Helena Bardera"
       },
-      "points": 389,
+      "points": 397,
       "position": 18
-    },
-    {
-      "user": {
-        "id": 439548,
-        "name": "Javier Marcos "
-      },
-      "points": 385,
-      "position": 19
     },
     {
       "user": {
         "id": 441360,
         "name": "javier"
       },
-      "points": 384,
+      "points": 396,
+      "position": 19
+    },
+    {
+      "user": {
+        "id": 439548,
+        "name": "Javier Marcos "
+      },
+      "points": 392,
       "position": 20
     },
     {
@@ -350,15 +351,15 @@
         "id": 90829,
         "name": "Alfredo Ad\u00e1n"
       },
-      "points": 383,
+      "points": 390,
       "position": 21
     },
     {
       "user": {
-        "id": 388686,
-        "name": "Jennifer Morgan"
+        "id": 448957,
+        "name": "Borja Eizmendi"
       },
-      "points": 380,
+      "points": 387,
       "position": 22
     },
     {
@@ -366,47 +367,47 @@
         "id": 172071,
         "name": "Juan Camilo Roa"
       },
-      "points": 380,
+      "points": 385,
       "position": 23
-    },
-    {
-      "user": {
-        "id": 448957,
-        "name": "Borja Eizmendi"
-      },
-      "points": 380,
-      "position": 24
     },
     {
       "user": {
         "id": 401426,
         "name": "Osmin Bernal"
       },
-      "points": 377,
-      "position": 25
+      "points": 384,
+      "position": 24
     },
     {
       "user": {
         "id": 167293,
         "name": "dougalves"
       },
-      "points": 375,
-      "position": 26
+      "points": 383,
+      "position": 25
     },
     {
       "user": {
         "id": 78855,
         "name": "victor roa jr"
       },
-      "points": 374,
-      "position": 27
+      "points": 382,
+      "position": 26
     },
     {
       "user": {
         "id": 161557,
         "name": "D Sebastian Roa"
       },
-      "points": 373,
+      "points": 381,
+      "position": 27
+    },
+    {
+      "user": {
+        "id": 388686,
+        "name": "Jennifer Morgan"
+      },
+      "points": 380,
       "position": 28
     },
     {
@@ -414,7 +415,7 @@
         "id": 97174,
         "name": "Ignacio Ad\u00e1n Ros\u00e9s"
       },
-      "points": 372,
+      "points": 375,
       "position": 29
     },
     {
@@ -422,7 +423,7 @@
         "id": 470786,
         "name": "Nessi Erkmenoglu"
       },
-      "points": 368,
+      "points": 374,
       "position": 30
     },
     {
@@ -430,7 +431,7 @@
         "id": 462562,
         "name": "Joyce Durol"
       },
-      "points": 368,
+      "points": 372,
       "position": 31
     },
     {
@@ -438,7 +439,7 @@
         "id": 173474,
         "name": "Arantxa Garc\u00eda"
       },
-      "points": 360,
+      "points": 368,
       "position": 32
     },
     {
@@ -446,7 +447,7 @@
         "id": 443249,
         "name": "Sandra Garcia"
       },
-      "points": 356,
+      "points": 363,
       "position": 33
     },
     {
@@ -454,7 +455,7 @@
         "id": 487293,
         "name": "sergiogolf"
       },
-      "points": 348,
+      "points": 356,
       "position": 34
     },
     {
